@@ -1,3 +1,8 @@
+
+# Copyright 2016 Jan Pazdziora
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+
 from django.contrib.auth import load_backend, BACKEND_SESSION_KEY
 from django.contrib.auth.models import Group
 from django.contrib.auth.backends import RemoteUserBackend
@@ -31,7 +36,7 @@ class RemoteUserAttrMiddleware(RemoteUserMiddleware):
 
         for g in ext_groups:
             g = self.group_prefix + g
-            if h in current_groups:
+            if g in current_groups:
                 del current_groups[g]
             else:
                 g_obj = Group.objects.filter(name=g)
@@ -39,19 +44,6 @@ class RemoteUserAttrMiddleware(RemoteUserMiddleware):
                     user.groups.add(g_obj[0])
             if g == self.staff_group:
                 user.is_staff = True
-
-        for i in range(1, int(ext_group_count) + 1):
-            if request.META.get("REMOTE_USER_GROUP_" + str(i), None):
-                g = (
-                    self.group_prefix +
-                    request.META["REMOTE_USER_GROUP_" + str(i)]
-                )
-                if g in current_groups:
-                    del current_groups[g]
-                else:
-                    g_obj = Group.objects.filter(name=g)
-                    if g_obj:
-                        user.groups.add(g_obj[0])
 
         for g in current_groups.values():
             user.groups.remove(g.id)
